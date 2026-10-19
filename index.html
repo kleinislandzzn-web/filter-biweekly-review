@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="use-iframe" content="true">
   <meta name="html-box-height-mode" content="auto">
-  <meta name="description" content="双周预设进度：8 款当前效果总览与线上旧效果对比">
+  <meta name="description" content="双周预设进度：9 款当前效果总览与线上旧效果对比">
   <title>预设效果进度</title>
   <style>
     :root {
@@ -113,7 +113,7 @@
 
     .overview-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       border-top: 1px solid var(--line);
     }
 
@@ -122,12 +122,15 @@
       padding: 14px 14px 12px;
     }
 
-    .preset:not(:nth-child(4n + 1)) { border-left: 1px solid var(--line); }
+    .preset:not(:nth-child(3n + 1)) { border-left: 1px solid var(--line); }
 
     .sample-pair {
       display: grid;
+      width: 100%;
+      max-width: 300px;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 6px;
+      margin-inline: auto;
     }
 
     .sample-pair .media { aspect-ratio: 3 / 4; }
@@ -150,6 +153,16 @@
       object-fit: cover;
       user-select: none;
       pointer-events: none;
+    }
+
+    .overview-sample {
+      cursor: zoom-in;
+      transition: outline-color 120ms ease-out;
+    }
+
+    .sample-pair:hover .overview-sample {
+      outline: 1px solid rgba(20, 20, 20, 0.18);
+      outline-offset: -1px;
     }
 
     .media .original {
@@ -175,6 +188,14 @@
       text-align: center;
     }
 
+    .preset-heading {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
     .preset-copy h2 {
       font-size: 13px;
       line-height: 1.3;
@@ -182,7 +203,80 @@
       letter-spacing: 0;
     }
 
+    .preset-title {
+      position: relative;
+      display: inline-block;
+    }
+
+    .preset-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: help;
+      outline: none;
+    }
+
+    .preset-info {
+      display: inline-grid;
+      width: 12px;
+      height: 12px;
+      place-items: center;
+      border: 1px solid rgba(23, 23, 23, 0.24);
+      border-radius: 50%;
+      color: var(--tertiary);
+      font-size: 8px;
+      font-style: normal;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .preset-tooltip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      z-index: 10;
+      width: max-content;
+      max-width: min(250px, calc(100vw - 24px));
+      padding: 7px 9px;
+      border-radius: 5px;
+      color: #fff;
+      background: rgba(23, 23, 23, 0.94);
+      font-size: 10px;
+      font-weight: 450;
+      line-height: 1.45;
+      text-align: left;
+      text-decoration: none;
+      transform: translate(-50%, 4px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 120ms ease-out, transform 120ms ease-out, visibility 120ms;
+    }
+
+    .preset-tooltip::after {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border: 5px solid transparent;
+      border-top-color: rgba(23, 23, 23, 0.94);
+      content: '';
+      transform: translateX(-50%);
+    }
+
+    .preset-title:hover .preset-tooltip,
+    .preset-title:focus-within .preset-tooltip {
+      transform: translate(-50%, 0);
+      opacity: 1;
+      visibility: visible;
+    }
+
     .preset-copy p {
+      display: flex;
+      min-height: 28px;
+      align-items: flex-start;
+      justify-content: center;
       margin-top: 2px;
       color: var(--secondary);
       font-size: 10px;
@@ -192,21 +286,112 @@
     .comparison-grid {
       display: grid;
       grid-template-columns: 1fr;
-      grid-template-rows: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(4, minmax(0, 1fr));
       border-top: 1px solid var(--line);
     }
 
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      padding: 16px;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.97);
+    }
+
+    .lightbox[hidden] { display: none; }
+
+    .lightbox-dialog {
+      display: grid;
+      width: min(780px, 100%);
+      max-height: 100%;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+    }
+
+    .lightbox-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lightbox-header h2 {
+      overflow: hidden;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .lightbox-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lightbox-original,
+    .lightbox-close {
+      height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--text);
+      background: #fff;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .lightbox-original { padding: 0 10px; }
+
+    .lightbox-close {
+      width: 30px;
+      padding: 0;
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .lightbox-grid {
+      display: grid;
+      min-height: 0;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lightbox-media {
+      width: min(100%, calc((100vh - 104px) * 0.75));
+      max-width: 100%;
+      height: auto;
+      justify-self: center;
+      aspect-ratio: 3 / 4;
+      border-radius: 6px;
+    }
+
+    body.lightbox-open { overflow: hidden; }
+
     .compare-preset {
+      display: grid;
       min-width: 0;
-      padding: 13px 14px 12px;
+      min-height: 0;
+      grid-template-columns: clamp(72px, 12vw, 118px) minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
     }
 
     .compare-heading {
-      margin-bottom: 8px;
+      min-width: 0;
       display: flex;
       align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
     }
 
     .compare-heading h2 {
@@ -223,19 +408,27 @@
       white-space: nowrap;
     }
 
+    .compare-preset.grouped-scenes { grid-row: span 2; }
+
+    .grouped-scenes + .compare-preset { border-top: 1px solid var(--line); }
+
     .scene-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 24px;
+      width: min(100%, 560px);
+      min-height: 0;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: center;
+      justify-self: center;
     }
 
     .scene {
       min-width: 0;
+      min-height: 0;
     }
 
-    .scene + .scene {
-      padding-left: 24px;
-      border-left: 1px solid var(--line);
+    .grouped-scenes .scene-grid {
+      grid-template-rows: repeat(2, auto);
+      row-gap: 10px;
     }
 
     .scene-label {
@@ -247,8 +440,22 @@
 
     .scene-states {
       display: grid;
+      min-height: 0;
       grid-template-columns: repeat(var(--state-count), minmax(0, 1fr));
+      align-items: start;
       gap: 6px;
+    }
+
+    .scene-states.has-new-divider {
+      grid-template-columns:
+        repeat(var(--legacy-count), minmax(0, 1fr))
+        0
+        repeat(var(--new-count), minmax(0, 1fr));
+    }
+
+    .effect-group-gap {
+      width: 0;
+      min-width: 0;
     }
 
     .scene-states[data-state-count="3"] {
@@ -256,7 +463,13 @@
       justify-content: center;
     }
 
-    .state-card { min-width: 0; }
+    .state-card {
+      display: grid;
+      min-width: 0;
+      min-height: 0;
+      grid-template-rows: auto auto;
+      justify-items: center;
+    }
 
     .state-label {
       margin-bottom: 4px;
@@ -270,12 +483,17 @@
     }
 
     .state-card .media {
+      width: min(100%, 110px);
+      height: auto;
+      max-width: 100%;
       aspect-ratio: 3 / 4;
       border-radius: 4px;
     }
 
     .tab:focus-visible,
     .original-button:focus-visible,
+    .lightbox-original:focus-visible,
+    .lightbox-close:focus-visible,
     .overview-sample:focus-visible,
     .comparison-sample:focus-visible {
       outline: 2px solid var(--active);
@@ -298,7 +516,7 @@
   </header>
 
   <main>
-    <section class="page" id="overview" aria-label="8 款新增效果">
+    <section class="page" id="overview" aria-label="9 款新增效果">
       <div class="overview-grid" id="overview-grid"></div>
     </section>
 
@@ -307,96 +525,148 @@
     </section>
   </main>
 
+  <div class="lightbox" id="preset-lightbox" hidden>
+    <section class="lightbox-dialog" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+      <div class="lightbox-header">
+        <h2 id="lightbox-title"></h2>
+        <div class="lightbox-actions">
+          <button class="lightbox-original" type="button" aria-pressed="false">按住看原图</button>
+          <button class="lightbox-close" type="button" aria-label="关闭大图" title="关闭">×</button>
+        </div>
+      </div>
+      <div class="lightbox-grid" id="lightbox-grid"></div>
+    </section>
+  </div>
+
   <script>
     const presets = [
       {
         name: 'Kodak FunSaver',
-        traits: '微糊 / 边缘色散 / 时间戳 / 暗角 / 暖调',
+        description: '模拟一次性胶片相机的随拍质感，以暖调、暗角和轻微色散营造松弛的胶片氛围。',
+        traits: '暖调彩噪 / 微糊 / 暗角 / 色散 / 时间戳',
         current: ['assets-web-hq/kodak-current-1.webp', 'assets-web-hq/kodak-current-2.webp'],
         original: ['assets-web-hq/kodak-original-1.webp', 'assets-web-hq/kodak-original-2.webp'],
         legacy: [null, null],
       },
       {
-        name: 'Fuji NC',
-        traits: '暖调 / 饱和色彩 / 暖肤色 / 阳光感',
+        name: 'Fuji X100V NC',
+        description: '模拟富士 X100V NC 的高对比复古胶片风格，以洋红暖调和硬朗质感强化画面辨识度。',
+        traits: '高对比 / 浓郁复古 / 硬朗 / 洋红暖调 / 胶片感',
         current: ['assets-web-hq/nc-current-1.webp', 'assets-web-hq/nc-current-2.webp'],
-        original: ['assets-web-hq/nc-original-1.webp', 'assets-web-hq/nc-original-2.webp'],
+        original: ['assets-web-hq/nc-original-1.webp?v=20261019-2', 'assets-web-hq/nc-original-2.webp'],
         legacy: [null, null],
       },
       {
         name: 'Fuji Provia 100F',
-        traits: '蓝紫色调 / 浓郁色彩 / 漏光 / 胶片感',
+        description: '模拟 Provia 100F 的蓝紫色调与浓郁反差，并加入漏光强化胶片氛围。',
+        traits: '蓝紫色调 / 浓郁色彩 / 漏光 / 胶片感 / 细腻颗粒',
         current: ['assets-web-hq/provia-current-1.webp', 'assets-web-hq/provia-current-2.webp'],
         original: ['assets-web-hq/provia-original-1.webp', 'assets-web-hq/provia-original-2.webp'],
         legacy: [null, null],
       },
       {
         name: 'Casio CCD',
-        traits: '冷调 / 柔光 / 轻微 CCD 质感 / 轻锐化',
-        current: ['assets-web-hq/ccd-current-1.webp', 'assets-web-hq/ccd-current-2.webp'],
-        original: ['assets-web-hq/ccd-original-1.webp', 'assets-web-hq/ccd-original-2.webp'],
+        description: '模拟卡西欧 Z 系列的冷白奶油肌，以柔光美颜和通透肤色呈现东亚流行的复古 CCD 人像氛围。',
+        traits: '冷白皮 / 奶油肌 / 柔和朦胧 / 时间戳 / 边缘色散',
+        current: ['assets-web-hq/ccd-current-1.webp?v=20261019-3', 'assets-web-hq/ccd-current-2.webp?v=20261019-2'],
+        original: ['assets-web-hq/ccd-original-1.webp?v=20261019-3', 'assets-web-hq/ccd-original-2.webp?v=20261019-2'],
         legacy: [null, null],
       },
       {
         name: 'Ricoh GRⅡ',
-        traits: '冷调青蓝 / 柔和反差 / 清透低饱和',
-        current: ['assets-web-hq/ricoh-current-1.webp', 'assets-web-hq/ricoh-current-2.webp'],
-        original: ['assets-web-hq/ricoh-original-1.webp', 'assets-web-hq/ricoh-original-2.webp'],
+        description: '模拟 GRⅡ 的冷调青绿与低反差影调，呈现柔和克制的日系街拍质感。',
+        traits: '冷调 / 青绿倾向 / 日系柔和 / 低反差',
+        current: ['assets-web-hq/ricoh-current-1.webp?v=20261019-2', 'assets-web-hq/ricoh-current-2.webp?v=20261019-2'],
+        original: ['assets-web-hq/ricoh-original-1.webp?v=20261019-2', 'assets-web-hq/ricoh-original-2.webp?v=20261019-2'],
         legacy: [null, null],
       },
       {
-        name: '暗调',
-        traits: '压低曝光 / 提高反差 / 压暗背景 / 轻噪点',
+        name: 'Sun-kissed',
+        description: '模拟阳光直晒下的暖热肤色与透亮高光，以饱满色彩和高对比营造明媚、热烈的日晒氛围。',
+        traits: '暖色 / 日晒 / 皮肤高光 / 色彩饱满 / 高对比',
+        current: ['assets-web-hq/vivid-current-1.webp?v=20261019-2', 'assets-web-hq/vivid-current-2.webp?v=20261019-2'],
+        original: ['assets-web-hq/vivid-original-1.webp?v=20261019-2', 'assets-web-hq/vivid-original-2.webp?v=20261019-2'],
+        legacy: [null, null],
+      },
+      {
+        name: 'PhotoBooth',
+        description: '模拟复古照相亭的闪光直拍与冲印扫描成片，以中心高亮、暗角、暖棕单色和印刷颗粒叠加做旧刮痕，呈现自然老化的旧照质感。',
+        traits: '暖棕 / 闪光 / 暗角 / 做旧',
+        current: ['assets-web-hq/photobooth-current-1.webp?v=20261019-2', 'assets-web-hq/photobooth-current-2.webp?v=20261019-2'],
+        original: ['assets-web-hq/photobooth-original-1.webp?v=20261019-2', 'assets-web-hq/photobooth-original-2.webp?v=20261019-2'],
+        legacy: [null, null],
+      },
+      {
+        name: 'B&W',
+        description: '以中性黑白和高反差重组明暗关系，突出人物与场景的结构和层次。',
+        traits: '中性黑白 / 高反差 / 突出明暗结构',
+        current: ['assets-web-hq/mono-current-1.webp', 'assets-web-hq/mono-current-2.webp'],
+        original: ['assets-web-hq/mono-original-1.webp', 'assets-web-hq/mono-original-2.webp'],
+        legacy: [null, null],
+      },
+      {
+        name: 'Moody',
+        description: '通过压低曝光和背景亮度、提高反差与加入轻噪点，营造克制的低照度氛围。',
+        traits: '低曝光 / 低饱和 / 冷肃氛围 / 轻噪点',
         current: ['assets-web-hq/dark-current-1.webp', 'assets-web-hq/dark-current-2.webp'],
         original: ['assets-web-hq/dark-original-1.webp', 'assets-web-hq/dark-original-2.webp'],
         legacy: [null, null],
       },
       {
-        name: '浓郁',
-        traits: '暖色温 / 高饱和 / 色彩饱满',
-        current: ['assets-web-hq/vivid-current-1.webp', 'assets-web-hq/vivid-current-2.webp'],
-        original: ['assets-web-hq/vivid-original-1.webp', 'assets-web-hq/vivid-original-2.webp'],
+        name: '鱼眼形变',
+        description: '效果定义待补充。',
+        traits: '效果定义待补',
+        current: ['assets-web-hq/placeholder-fisheye-1.webp', 'assets-web-hq/placeholder-fisheye-2.webp'],
+        original: ['assets-web-hq/placeholder-fisheye-1.webp', 'assets-web-hq/placeholder-fisheye-2.webp'],
         legacy: [null, null],
-      },
-      {
-        name: '黑白',
-        traits: '中性黑白 / 高反差 / 突出明暗结构',
-        current: ['assets-web-hq/mono-current-1.webp', 'assets-web-hq/mono-current-2.webp'],
-        original: ['assets-web-hq/mono-original-1.webp', 'assets-web-hq/mono-original-2.webp'],
-        legacy: [null, null],
+        hiddenInOverview: true,
       },
     ];
 
     const overviewGrid = document.querySelector('#overview-grid');
     const comparisonGrid = document.querySelector('#comparison-grid');
     const originalButton = document.querySelector('.original-button');
+    const lightbox = document.querySelector('#preset-lightbox');
+    const lightboxTitle = document.querySelector('#lightbox-title');
+    const lightboxGrid = document.querySelector('#lightbox-grid');
+    const lightboxOriginalButton = document.querySelector('.lightbox-original');
+    const lightboxCloseButton = document.querySelector('.lightbox-close');
+    let lightboxSamples = [];
+    let lightboxTrigger = null;
 
     function imageMarkup(src, className, alt) {
       return src ? `<img class="${className}" src="${src}" alt="${alt}">` : '';
     }
 
-    function overviewSample(preset, index) {
+    function overviewSample(preset, index, presetIndex) {
       const current = preset.current[index];
       const original = preset.original[index];
       if (!current || !original) {
         return '<div class="media placeholder">待补当前效果</div>';
       }
       return `
-        <div class="media overview-sample" data-state="current" tabindex="0" role="button" aria-label="${preset.name} 样片 ${index + 1}，按住查看原图">
+        <div class="media overview-sample" data-state="current" data-preset-index="${presetIndex}" tabindex="0" role="button" title="点击查看两张大图；按住查看原图" aria-label="${preset.name} 样片 ${index + 1}，单击查看两张大图，按住查看原图">
           ${imageMarkup(current, 'current', `${preset.name} 当前效果 ${index + 1}`)}
           ${imageMarkup(original, 'original', `${preset.name} 原图 ${index + 1}`)}
         </div>`;
     }
 
-    presets.forEach((preset) => {
+    presets.filter((preset) => !preset.hiddenInOverview).forEach((preset) => {
+      const presetIndex = presets.indexOf(preset);
+      const descriptionId = `preset-description-${presetIndex}`;
       overviewGrid.insertAdjacentHTML('beforeend', `
         <article class="preset">
           <div class="sample-pair">
-            ${overviewSample(preset, 0)}
-            ${overviewSample(preset, 1)}
+            ${overviewSample(preset, 0, presetIndex)}
+            ${overviewSample(preset, 1, presetIndex)}
           </div>
           <div class="preset-copy">
-            <h2>${preset.name}</h2>
+            <div class="preset-heading">
+              <div class="preset-title">
+                <h2 class="preset-name" tabindex="0" aria-describedby="${descriptionId}">${preset.name}<span class="preset-info" aria-hidden="true">i</span></h2>
+                <div class="preset-tooltip" id="${descriptionId}" role="tooltip">${preset.description}</div>
+              </div>
+            </div>
             <p>${preset.traits}</p>
           </div>
         </article>`);
@@ -413,80 +683,120 @@
             original: 'assets-web-hq/compare-a-original.webp',
             states: [
               { label: '线上Kodak', image: 'assets-web-hq/compare-a-kodak-legacy.webp' },
-              { label: '🆕 新Kodak FunSaver', image: 'assets-web-hq/compare-a-kodak-current.webp' },
               { label: '线上Fuji', image: 'assets-web-hq/compare-a-fuji-legacy.webp' },
-              { label: '🆕 新Fuji NC', image: 'assets-web-hq/compare-a-fuji-nc-current.webp' },
+              { label: '🆕 新Kodak FunSaver', image: 'assets-web-hq/compare-a-kodak-current.webp' },
+              { label: '🆕 新Fuji X100V NC', image: 'assets-web-hq/compare-a-fuji-nc-current.webp' },
+              { label: '🆕 新Fuji Provia 100F', image: 'assets-web-hq/compare-a-fuji-provia-current.webp' },
             ],
           },
           {
             label: '图 B',
+            hideStateLabels: true,
             original: 'assets-web-hq/compare-b-original.webp',
             states: [
               { label: '线上Kodak', image: 'assets-web-hq/compare-b-kodak-legacy.webp' },
-              { label: '🆕 新Kodak FunSaver', image: 'assets-web-hq/compare-b-kodak-current.webp' },
               { label: '线上Fuji', image: 'assets-web-hq/compare-b-fuji-legacy.webp' },
-              { label: '🆕 新 Fuji Provia 100F', image: 'assets-web-hq/compare-b-fuji-current.webp' },
+              { label: '🆕 新Kodak FunSaver', image: 'assets-web-hq/compare-b-kodak-current.webp' },
+              { label: '🆕 新Fuji X100V NC', image: 'assets-web-hq/compare-b-fuji-nc-current.webp' },
+              { label: '🆕 新Fuji Provia 100F', image: 'assets-web-hq/compare-b-fuji-current.webp' },
             ],
           },
         ],
       },
       {
-        name: '日常系',
+        name: '黑白系',
         hideSceneLabels: true,
         scenes: [
           {
-            label: '图 C · 黑白',
+            label: '图 C · B&W',
             original: 'assets-web-hq/compare-c-original.webp',
             states: [
               { label: '线上Darkroom', image: 'assets-web-hq/compare-c-darkroom-legacy.webp' },
               { label: '线上Mirage', image: 'assets-web-hq/compare-c-mirage-legacy.webp' },
               { label: '线上Mono', image: 'assets-web-hq/compare-c-online-mono.webp' },
-              { label: '🆕 新黑白', image: 'assets-web-hq/compare-c-mono-current.webp' },
+              { label: '线上Old Movie', image: 'assets-web-hq/compare-c-oldmovie-legacy.webp' },
+              { label: '🆕 新B&W', image: 'assets-web-hq/compare-c-mono-current.webp' },
             ],
           },
+        ],
+      },
+      {
+        name: '暗调系',
+        hideSceneLabels: true,
+        scenes: [
           {
-            label: '图 D · 暗调',
+            label: '图 D · Moody',
             original: 'assets-web-hq/compare-d-original.webp',
             states: [
               { label: '线上Gotham', image: 'assets-web-hq/compare-d-gotham-legacy.webp' },
               { label: '线上Teal', image: 'assets-web-hq/compare-d-teal-legacy.webp' },
+              { label: '线上Gothic', image: 'assets-web-hq/compare-d-gothic-legacy.webp' },
               { label: '线上Steel', image: 'assets-web-hq/compare-d-steel-legacy.webp' },
-              { label: '🆕 新暗调', image: 'assets-web-hq/compare-d-dark-current.webp' },
+              { label: '🆕 新Moody', image: 'assets-web-hq/compare-d-dark-current.webp' },
             ],
           },
         ],
       },
     ];
 
-    function comparisonState(state, original, sectionName, sceneLabel) {
+    function comparisonState(state, original, sectionName, sceneLabel, hideLabel = false) {
       const media = state.image
         ? `<div class="media comparison-sample" data-state="current" tabindex="0" role="button" aria-label="${sectionName} ${sceneLabel} ${state.label}，按住查看原图">
             ${imageMarkup(state.image, 'current', `${sectionName} ${sceneLabel} ${state.label}`)}
             ${imageMarkup(original, 'original', `${sectionName} ${sceneLabel} 原图`)}
           </div>`
         : `<div class="media placeholder">待补${state.label}</div>`;
-      return `<div class="state-card"><div class="state-label">${state.label}</div>${media}</div>`;
+      const label = hideLabel ? '' : `<div class="state-label">${state.label}</div>`;
+      return `<div class="state-card">${label}${media}</div>`;
     }
 
     comparisonSections.forEach((section) => {
       const scenes = section.scenes.map((scene) => {
-        const states = scene.states.map((state) => comparisonState(state, scene.original, section.name, scene.label)).join('');
+        const groupName = scene.groupName || section.name;
+        const firstNewIndex = scene.states.findIndex((state) => state.label.startsWith('🆕'));
+        const hasNewDivider = firstNewIndex > 0;
+        const states = scene.states.map((state, index) => {
+          const divider = hasNewDivider && index === firstNewIndex ? '<div class="effect-group-gap" aria-hidden="true"></div>' : '';
+          return divider + comparisonState(state, scene.original, groupName, scene.label, scene.hideStateLabels);
+        }).join('');
+        const stateGridClass = hasNewDivider ? ' has-new-divider' : '';
+        const stateGridStyle = hasNewDivider
+          ? `--state-count: ${scene.states.length}; --legacy-count: ${firstNewIndex}; --new-count: ${scene.states.length - firstNewIndex}`
+          : `--state-count: ${scene.states.length}`;
+        const groupHeading = scene.groupName ? `<div class="compare-heading"><h2>${scene.groupName}</h2></div>` : '';
         const sceneLabel = section.hideSceneLabels ? '' : `<div class="scene-label">${scene.label}</div>`;
         return `
-          <section class="scene" aria-label="${section.name} ${scene.label}">
+          <section class="scene" aria-label="${groupName} ${scene.label}">
+            ${groupHeading}
             ${sceneLabel}
-            <div class="scene-states" data-state-count="${scene.states.length}" style="--state-count: ${scene.states.length}">${states}</div>
+            <div class="scene-states${stateGridClass}" data-state-count="${scene.states.length}" style="${stateGridStyle}">${states}</div>
           </section>`;
       }).join('');
 
-      comparisonGrid.insertAdjacentHTML('beforeend', `
-        <article class="compare-preset">
+      const sectionHeading = section.name ? `
           <div class="compare-heading">
             <h2>${section.name}</h2>
-          </div>
+          </div>` : '';
+      const groupedClass = section.scenes.length > 1 ? ' grouped-scenes' : '';
+
+      comparisonGrid.insertAdjacentHTML('beforeend', `
+        <article class="compare-preset${groupedClass}">
+          ${sectionHeading}
           <div class="scene-grid">${scenes}</div>
         </article>`);
     });
+
+    let syncedOverviewHeight = 0;
+
+    function syncPageHeights() {
+      const nextHeight = Math.ceil(overviewGrid.getBoundingClientRect().height);
+      if (nextHeight <= 0 || nextHeight === syncedOverviewHeight) return;
+      syncedOverviewHeight = nextHeight;
+      comparisonGrid.style.height = `${syncedOverviewHeight}px`;
+    }
+
+    requestAnimationFrame(syncPageHeights);
+    new ResizeObserver(syncPageHeights).observe(overviewGrid);
 
     const overviewSamples = [...document.querySelectorAll('.overview-sample')];
     const comparisonSamples = [...document.querySelectorAll('.comparison-sample')];
@@ -494,6 +804,42 @@
     function setOriginalState(state) {
       [...overviewSamples, ...comparisonSamples].forEach((sample) => { sample.dataset.state = state; });
       originalButton.setAttribute('aria-pressed', String(state === 'original'));
+    }
+
+    function setLightboxOriginalState(state) {
+      lightboxSamples.forEach((sample) => { sample.dataset.state = state; });
+      lightboxOriginalButton.setAttribute('aria-pressed', String(state === 'original'));
+    }
+
+    function openLightbox(presetIndex, trigger) {
+      const preset = presets[presetIndex];
+      if (!preset) return;
+      lightboxTitle.textContent = preset.name;
+      lightboxGrid.innerHTML = preset.current.map((current, index) => `
+        <div class="media lightbox-media" data-state="current" tabindex="0" role="button" aria-label="${preset.name} 大图 ${index + 1}，按住查看原图">
+          ${imageMarkup(current, 'current', `${preset.name} 当前效果大图 ${index + 1}`)}
+          ${imageMarkup(preset.original[index], 'original', `${preset.name} 原图大图 ${index + 1}`)}
+        </div>`).join('');
+      lightboxSamples = [...lightboxGrid.querySelectorAll('.lightbox-media')];
+      lightboxSamples.forEach((sample) => bindPress(
+        sample,
+        () => { sample.dataset.state = 'original'; },
+        () => { sample.dataset.state = 'current'; },
+      ));
+      lightboxTrigger = trigger;
+      setLightboxOriginalState('current');
+      lightbox.hidden = false;
+      document.body.classList.add('lightbox-open');
+      lightboxCloseButton.focus();
+    }
+
+    function closeLightbox() {
+      lightbox.hidden = true;
+      document.body.classList.remove('lightbox-open');
+      lightboxGrid.replaceChildren();
+      lightboxSamples = [];
+      lightboxTrigger?.focus();
+      lightboxTrigger = null;
     }
 
     function bindPress(target, onStart, onEnd) {
@@ -519,16 +865,42 @@
     }
 
     bindPress(originalButton, () => setOriginalState('original'), () => setOriginalState('current'));
-    overviewSamples.forEach((sample) => bindPress(
-      sample,
-      () => { sample.dataset.state = 'original'; },
-      () => { sample.dataset.state = 'current'; },
-    ));
+    bindPress(lightboxOriginalButton, () => setLightboxOriginalState('original'), () => setLightboxOriginalState('current'));
+    overviewSamples.forEach((sample) => {
+      let pressedAt = 0;
+      let pressedPoint = null;
+      bindPress(
+        sample,
+        () => { sample.dataset.state = 'original'; },
+        () => { sample.dataset.state = 'current'; },
+      );
+      sample.addEventListener('pointerdown', (event) => {
+        pressedAt = performance.now();
+        pressedPoint = { x: event.clientX, y: event.clientY };
+      });
+      sample.addEventListener('pointerup', (event) => {
+        const duration = performance.now() - pressedAt;
+        const distance = pressedPoint ? Math.hypot(event.clientX - pressedPoint.x, event.clientY - pressedPoint.y) : Infinity;
+        if (duration < 260 && distance < 8) openLightbox(Number(sample.dataset.presetIndex), sample);
+        pressedPoint = null;
+      });
+      sample.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.repeat) openLightbox(Number(sample.dataset.presetIndex), sample);
+      });
+    });
     comparisonSamples.forEach((sample) => bindPress(
       sample,
       () => { sample.dataset.state = 'original'; },
       () => { sample.dataset.state = 'current'; },
     ));
+
+    lightboxCloseButton.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', (event) => {
+      if (event.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !lightbox.hidden) closeLightbox();
+    });
 
     document.querySelectorAll('.tab').forEach((tab) => {
       tab.addEventListener('click', () => {
